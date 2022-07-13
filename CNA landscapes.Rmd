@@ -1,0 +1,350 @@
+---
+title: "CNA landscapes"
+output: html_document
+date: '2022-07-13'
+---
+Pull CNA datasets from curatedPCaData
+```{r}
+Abida <- curatedPCaData::mae_abida@ExperimentList@listData$cna.gistic
+Baca <- curatedPCaData::mae_baca@ExperimentList@listData$cna.gistic
+Barbieri <- curatedPCaData::mae_barbieri@ExperimentList@listData$cna.gistic
+Hieronymus <- curatedPCaData::mae_hieronymus@ExperimentList@listData$cna.logr
+Ren <- curatedPCaData::mae_ren@ExperimentList@listData$cna.gistic
+Taylor <- curatedPCaData::mae_taylor@ExperimentList@listData$cna.gistic
+TCGA <- curatedPCaData::mae_tcga@ExperimentList@listData$cna.gistic
+```
+Compute alteration frequencies
+```{r}
+source("alteration rank.R")
+# Abida
+Abida.gain <- Abida
+Abida.gain[Abida > 0] <- 1
+Abida.gain[Abida <= 0] <- 0
+Abida.loss <- Abida
+Abida.loss[Abida < 0] <- 1
+Abida.loss[Abida >= 0] <- 0
+Abida.gain.freq <- alterationRank(Abida.gain)
+Abida.loss.freq <- alterationRank(Abida.loss)
+# Baca
+Baca.gain <- Baca
+Baca.gain[Baca > 0] <- 1
+Baca.gain[Baca <= 0] <- 0
+Baca.loss <- Baca
+Baca.loss[Baca < 0] <- 1
+Baca.loss[Baca >= 0] <- 0
+Baca.gain.freq <- alterationRank(Baca.gain)
+Baca.loss.freq <- alterationRank(Baca.loss)
+# Barbieri
+Barbieri.gain <- Barbieri
+Barbieri.gain[Barbieri > 0] <- 1
+Barbieri.gain[Barbieri <= 0] <- 0
+Barbieri.loss <- Barbieri
+Barbieri.loss[Barbieri < 0] <- 1
+Barbieri.loss[Barbieri >= 0] <- 0
+Barbieri.gain.freq <- alterationRank(Barbieri.gain)
+Barbieri.loss.freq <- alterationRank(Barbieri.loss)
+# Hieronymus
+Hieronymus.gain <- Hieronymus
+Hieronymus.gain[Hieronymus > 0] <- 1
+Hieronymus.gain[Hieronymus <= 0] <- 0
+Hieronymus.loss <- Hieronymus
+Hieronymus.loss[Hieronymus < 0] <- 1
+Hieronymus.loss[Hieronymus >= 0] <- 0
+Hieronymus.gain.freq <- alterationRank(Hieronymus.gain)
+Hieronymus.loss.freq <- alterationRank(Hieronymus.loss)
+# Ren
+Ren.gain <- Ren
+Ren.gain[Ren > 0] <- 1
+Ren.gain[Ren <= 0] <- 0
+Ren.loss <- Ren
+Ren.loss[Ren < 0] <- 1
+Ren.loss[Ren >= 0] <- 0
+Ren.gain.freq <- alterationRank(Ren.gain)
+Ren.loss.freq <- alterationRank(Ren.loss)
+# Taylor
+Taylor.gain <- Taylor
+Taylor.gain[Taylor > 0] <- 1
+Taylor.gain[Taylor <= 0] <- 0
+Taylor.loss <- Taylor
+Taylor.loss[Taylor < 0] <- 1
+Taylor.loss[Taylor >= 0] <- 0
+Taylor.gain.freq <- alterationRank(Taylor.gain)
+Taylor.loss.freq <- alterationRank(Taylor.loss)
+# TCGA
+TCGA.gain <- TCGA
+TCGA.gain[TCGA > 0] <- 1
+TCGA.gain[TCGA <= 0] <- 0
+TCGA.loss <- TCGA
+TCGA.loss[TCGA < 0] <- 1
+TCGA.loss[TCGA >= 0] <- 0
+TCGA.gain.freq <- alterationRank(TCGA.gain)
+TCGA.loss.freq <- alterationRank(TCGA.loss)
+```
+Create manhattan objects
+```{r}
+source("manhattan.R")
+source("annotate.R")
+# Abida
+Abida.loss.gr <- manhattan.object(Abida.loss.freq[,c(1,4)])
+Abida.gain.gr <- manhattan.object(Abida.gain.freq[,c(1,4)])
+# Baca
+Baca.loss.gr <- manhattan.object(Baca.loss.freq[,c(1,4)])
+Baca.gain.gr <- manhattan.object(Baca.gain.freq[,c(1,4)])
+# Barbieri
+Barbieri.loss.gr <- manhattan.object(Barbieri.loss.freq[,c(1,4)])
+Barbieri.gain.gr <- manhattan.object(Barbieri.gain.freq[,c(1,4)])
+# Hieronymus
+Hieronymus.loss.gr <- manhattan.object(Hieronymus.loss.freq[,c(1,4)])
+Hieronymus.gain.gr <- manhattan.object(Hieronymus.gain.freq[,c(1,4)])
+# Ren
+Ren.loss.gr <- manhattan.object(Ren.loss.freq[,c(1,4)])
+Ren.gain.gr <- manhattan.object(Ren.gain.freq[,c(1,4)])
+# Taylor
+Taylor.loss.gr <- manhattan.object(Taylor.loss.freq[,c(1,4)])
+Taylor.gain.gr <- manhattan.object(Taylor.gain.freq[,c(1,4)])
+# TCGA
+TCGA.loss.gr <- manhattan.object(TCGA.loss.freq[,c(1,4)])
+TCGA.gain.gr <- manhattan.object(TCGA.gain.freq[,c(1,4)])
+```
+Specify genes for annotation
+```{r}
+canonical.GOF.alterations <- c("EGFR", "MYC")
+canonical.LOF.alterations <- c("SHQ1", "LRP1B", "CHD1", "MAP3K7", "BNIP3L", "PTEN", "BRCA2", "RB1", "USP10", "TP53", "ERG", "CDKN1B", "NKX3-1", "HDAC5", "DUSP16", "BCL2")
+```
+Plot alteration landscapes
+```{r}
+pdf("Alteration Landscapes.pdf", width = 14, height = 8)
+params <- getDefaultPlotParams(plot.type = 4)
+params$leftmargin = 0.15
+params$topmargin = 20
+params$bottommargin = 30
+###---Abida----
+kp <- plotKaryotype(genome = "hg38", plot.type=4, cex = 1, labels.plotter = NULL, plot.params = params)
+kpAddChromosomeNames(kp, srt = 90, cex = 1.3, yoffset = 0)
+## Plot Gain of function
+kp <- kpPlotHorizon(kp, Abida.gain.gr, r0=0.5, r1=1, ymax=1, ymin = 0, num.parts = 1, col=c("white", "orange"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=1, tick.pos = c(0, 0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=1, cex=1.5, label.margin = 0.11)
+index <- c()
+for (i in 1:length(Abida.gain.gr)){
+  index[i] <- Abida.gain.gr@ranges@NAMES[i] %in% canonical.GOF.alterations
+}
+GOF.labels <- Abida.gain.gr[index]
+GOF.labels$y <- GOF.labels$value
+kpSegments(kp, GOF.labels, y0=GOF.labels$y+.012, y1=GOF.labels$y+.165, col="grey", r0=0.5, r1=1, lwd = 1.2)
+kpPoints(kp, GOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = GOF.labels$y, r0=0.5, r1=1)
+kpText(kp, labels = names(GOF.labels), cex=1.2, col="black", chr = GOF.labels@seqnames, x = GOF.labels@ranges@start, y = GOF.labels$y+.2, r0=0.5, r1=1)
+## Plot Loss of function
+kp <- kpPlotHorizon(kp, Abida.loss.gr, r0=0.5, r1=0, ymax=1, ymin = 0, num.parts = 1, col = c("white", "navy"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=0, tick.pos = c(0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=0, cex=1.5, label.margin = 0.1)
+kpAddMainTitle(kp)
+legend(x = 0.85, y = 1, fill = c("orange", "navy"), legend = c("Gain", "Deletion"), box.col = "white", cex = 1.3)
+index <- c()
+for (i in 1:length(Abida.loss.gr)){
+  index[i] <- Abida.loss.gr@ranges@NAMES[i] %in% canonical.LOF.alterations
+}
+LOF.labels <- Abida.loss.gr[index]
+LOF.labels$y <- LOF.labels$value
+kpSegments(kp, LOF.labels, y0=LOF.labels$y+.012, y1=LOF.labels$y+.165, col="grey", r0=0.5, r1=0, lwd = 1.2)
+kpPoints(kp, LOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = LOF.labels$y, r0=0.5, r1=0)
+kpText(kp, labels = names(LOF.labels), cex=1.2, col="black", chr = LOF.labels@seqnames, x = LOF.labels@ranges@start, y = LOF.labels$y+.2, r0=0.5, r1=0)
+kpAddMainTitle(kp, "Abida", cex=1.5)
+###---Baca----
+kp <- plotKaryotype(genome = "hg38", plot.type=4, cex = 1, labels.plotter = NULL, plot.params = params)
+kpAddChromosomeNames(kp, srt = 90, cex = 1.3, yoffset = 0)
+## Plot Gain of function
+kp <- kpPlotHorizon(kp, Baca.gain.gr, r0=0.5, r1=1, ymax=1, ymin = 0, num.parts = 1, col=c("white", "orange"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=1, tick.pos = c(0, 0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=1, cex=1.5, label.margin = 0.11)
+index <- c()
+for (i in 1:length(Baca.gain.gr)){
+  index[i] <- Baca.gain.gr@ranges@NAMES[i] %in% canonical.GOF.alterations
+}
+GOF.labels <- Baca.gain.gr[index]
+GOF.labels$y <- GOF.labels$value
+kpSegments(kp, GOF.labels, y0=GOF.labels$y+.012, y1=GOF.labels$y+.165, col="grey", r0=0.5, r1=1, lwd = 1.2)
+kpPoints(kp, GOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = GOF.labels$y, r0=0.5, r1=1)
+kpText(kp, labels = names(GOF.labels), cex=1.2, col="black", chr = GOF.labels@seqnames, x = GOF.labels@ranges@start, y = GOF.labels$y+.2, r0=0.5, r1=1)
+## Plot Loss of function
+kp <- kpPlotHorizon(kp, Baca.loss.gr, r0=0.5, r1=0, ymax=1, ymin = 0, num.parts = 1, col = c("white", "navy"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=0, tick.pos = c(0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=0, cex=1.5, label.margin = 0.1)
+kpAddMainTitle(kp)
+legend(x = 0.85, y = 1, fill = c("orange", "navy"), legend = c("Gain", "Deletion"), box.col = "white", cex = 1.3)
+index <- c()
+for (i in 1:length(Baca.loss.gr)){
+  index[i] <- Baca.loss.gr@ranges@NAMES[i] %in% canonical.LOF.alterations
+}
+LOF.labels <- Baca.loss.gr[index]
+LOF.labels$y <- LOF.labels$value
+kpSegments(kp, LOF.labels, y0=LOF.labels$y+.012, y1=LOF.labels$y+.165, col="grey", r0=0.5, r1=0, lwd = 1.2)
+kpPoints(kp, LOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = LOF.labels$y, r0=0.5, r1=0)
+kpText(kp, labels = names(LOF.labels), cex=1.2, col="black", chr = LOF.labels@seqnames, x = LOF.labels@ranges@start, y = LOF.labels$y+.2, r0=0.5, r1=0)
+kpAddMainTitle(kp, "Baca", cex=1.5)
+###---Barbieri----
+kp <- plotKaryotype(genome = "hg38", plot.type=4, cex = 1, labels.plotter = NULL, plot.params = params)
+kpAddChromosomeNames(kp, srt = 90, cex = 1.3, yoffset = 0)
+## Plot Gain of function
+kp <- kpPlotHorizon(kp, Barbieri.gain.gr, r0=0.5, r1=1, ymax=1, ymin = 0, num.parts = 1, col=c("white", "orange"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=1, tick.pos = c(0, 0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=1, cex=1.5, label.margin = 0.11)
+index <- c()
+for (i in 1:length(Barbieri.gain.gr)){
+  index[i] <- Barbieri.gain.gr@ranges@NAMES[i] %in% canonical.GOF.alterations
+}
+GOF.labels <- Barbieri.gain.gr[index]
+GOF.labels$y <- GOF.labels$value
+kpSegments(kp, GOF.labels, y0=GOF.labels$y+.012, y1=GOF.labels$y+.165, col="grey", r0=0.5, r1=1, lwd = 1.2)
+kpPoints(kp, GOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = GOF.labels$y, r0=0.5, r1=1)
+kpText(kp, labels = names(GOF.labels), cex=1.2, col="black", chr = GOF.labels@seqnames, x = GOF.labels@ranges@start, y = GOF.labels$y+.2, r0=0.5, r1=1)
+## Plot Loss of function
+kp <- kpPlotHorizon(kp, Barbieri.loss.gr, r0=0.5, r1=0, ymax=1, ymin = 0, num.parts = 1, col = c("white", "navy"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=0, tick.pos = c(0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=0, cex=1.5, label.margin = 0.1)
+kpAddMainTitle(kp)
+legend(x = 0.85, y = 1, fill = c("orange", "navy"), legend = c("Gain", "Deletion"), box.col = "white", cex = 1.3)
+index <- c()
+for (i in 1:length(Barbieri.loss.gr)){
+  index[i] <- Barbieri.loss.gr@ranges@NAMES[i] %in% canonical.LOF.alterations
+}
+LOF.labels <- Barbieri.loss.gr[index]
+LOF.labels$y <- LOF.labels$value
+kpSegments(kp, LOF.labels, y0=LOF.labels$y+.012, y1=LOF.labels$y+.165, col="grey", r0=0.5, r1=0, lwd = 1.2)
+kpPoints(kp, LOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = LOF.labels$y, r0=0.5, r1=0)
+kpText(kp, labels = names(LOF.labels), cex=1.2, col="black", chr = LOF.labels@seqnames, x = LOF.labels@ranges@start, y = LOF.labels$y+.2, r0=0.5, r1=0)
+kpAddMainTitle(kp, "Barbieri", cex=1.5)
+
+###---Hieronymus----
+kp <- plotKaryotype(genome = "hg38", plot.type=4, cex = 1, labels.plotter = NULL, plot.params = params)
+kpAddChromosomeNames(kp, srt = 90, cex = 1.3, yoffset = 0)
+## Plot Gain of function
+kp <- kpPlotHorizon(kp, Hieronymus.gain.gr, r0=0.5, r1=1, ymax=1, ymin = 0, num.parts = 1, col=c("white", "orange"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=1, tick.pos = c(0, 0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=1, cex=1.5, label.margin = 0.11)
+index <- c()
+for (i in 1:length(Hieronymus.gain.gr)){
+  index[i] <- Hieronymus.gain.gr@ranges@NAMES[i] %in% canonical.GOF.alterations
+}
+GOF.labels <- Hieronymus.gain.gr[index]
+GOF.labels$y <- GOF.labels$value
+kpSegments(kp, GOF.labels, y0=GOF.labels$y+.012, y1=GOF.labels$y+.165, col="grey", r0=0.5, r1=1, lwd = 1.2)
+kpPoints(kp, GOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = GOF.labels$y, r0=0.5, r1=1)
+kpText(kp, labels = names(GOF.labels), cex=1.2, col="black", chr = GOF.labels@seqnames, x = GOF.labels@ranges@start, y = GOF.labels$y+.2, r0=0.5, r1=1)
+## Plot Loss of function
+kp <- kpPlotHorizon(kp, Hieronymus.loss.gr, r0=0.5, r1=0, ymax=1, ymin = 0, num.parts = 1, col = c("white", "navy"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=0, tick.pos = c(0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=0, cex=1.5, label.margin = 0.1)
+kpAddMainTitle(kp)
+legend(x = 0.85, y = 1, fill = c("orange", "navy"), legend = c("Gain", "Deletion"), box.col = "white", cex = 1.3)
+index <- c()
+for (i in 1:length(Hieronymus.loss.gr)){
+  index[i] <- Hieronymus.loss.gr@ranges@NAMES[i] %in% canonical.LOF.alterations
+}
+LOF.labels <- Hieronymus.loss.gr[index]
+LOF.labels$y <- LOF.labels$value
+kpSegments(kp, LOF.labels, y0=LOF.labels$y+.012, y1=LOF.labels$y+.165, col="grey", r0=0.5, r1=0, lwd = 1.2)
+kpPoints(kp, LOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = LOF.labels$y, r0=0.5, r1=0)
+kpText(kp, labels = names(LOF.labels), cex=1.2, col="black", chr = LOF.labels@seqnames, x = LOF.labels@ranges@start, y = LOF.labels$y+.2, r0=0.5, r1=0)
+kpAddMainTitle(kp, "Hieronymus", cex=1.5)
+
+###---Ren----
+kp <- plotKaryotype(genome = "hg38", plot.type=4, cex = 1, labels.plotter = NULL, plot.params = params)
+kpAddChromosomeNames(kp, srt = 90, cex = 1.3, yoffset = 0)
+## Plot Gain of function
+kp <- kpPlotHorizon(kp, Ren.gain.gr, r0=0.5, r1=1, ymax=1, ymin = 0, num.parts = 1, col=c("white", "orange"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=1, tick.pos = c(0, 0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=1, cex=1.5, label.margin = 0.11)
+index <- c()
+for (i in 1:length(Ren.gain.gr)){
+  index[i] <- Ren.gain.gr@ranges@NAMES[i] %in% canonical.GOF.alterations
+}
+GOF.labels <- Ren.gain.gr[index]
+GOF.labels$y <- GOF.labels$value
+kpSegments(kp, GOF.labels, y0=GOF.labels$y+.012, y1=GOF.labels$y+.165, col="grey", r0=0.5, r1=1, lwd = 1.2)
+kpPoints(kp, GOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = GOF.labels$y, r0=0.5, r1=1)
+kpText(kp, labels = names(GOF.labels), cex=1.2, col="black", chr = GOF.labels@seqnames, x = GOF.labels@ranges@start, y = GOF.labels$y+.2, r0=0.5, r1=1)
+## Plot Loss of function
+kp <- kpPlotHorizon(kp, Ren.loss.gr, r0=0.5, r1=0, ymax=1, ymin = 0, num.parts = 1, col = c("white", "navy"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=0, tick.pos = c(0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=0, cex=1.5, label.margin = 0.1)
+kpAddMainTitle(kp)
+legend(x = 0.85, y = 1, fill = c("orange", "navy"), legend = c("Gain", "Deletion"), box.col = "white", cex = 1.3)
+index <- c()
+for (i in 1:length(Ren.loss.gr)){
+  index[i] <- Ren.loss.gr@ranges@NAMES[i] %in% canonical.LOF.alterations
+}
+LOF.labels <- Ren.loss.gr[index]
+LOF.labels$y <- LOF.labels$value
+kpSegments(kp, LOF.labels, y0=LOF.labels$y+.012, y1=LOF.labels$y+.165, col="grey", r0=0.5, r1=0, lwd = 1.2)
+kpPoints(kp, LOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = LOF.labels$y, r0=0.5, r1=0)
+kpText(kp, labels = names(LOF.labels), cex=1.2, col="black", chr = LOF.labels@seqnames, x = LOF.labels@ranges@start, y = LOF.labels$y+.2, r0=0.5, r1=0)
+kpAddMainTitle(kp, "Ren", cex=1.5)
+
+###---Taylor----
+kp <- plotKaryotype(genome = "hg38", plot.type=4, cex = 1, labels.plotter = NULL, plot.params = params)
+kpAddChromosomeNames(kp, srt = 90, cex = 1.3, yoffset = 0)
+## Plot Gain of function
+kp <- kpPlotHorizon(kp, Taylor.gain.gr, r0=0.5, r1=1, ymax=1, ymin = 0, num.parts = 1, col=c("white", "orange"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=1, tick.pos = c(0, 0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=1, cex=1.5, label.margin = 0.11)
+index <- c()
+for (i in 1:length(Taylor.gain.gr)){
+  index[i] <- Taylor.gain.gr@ranges@NAMES[i] %in% canonical.GOF.alterations
+}
+GOF.labels <- Taylor.gain.gr[index]
+GOF.labels$y <- GOF.labels$value
+kpSegments(kp, GOF.labels, y0=GOF.labels$y+.012, y1=GOF.labels$y+.165, col="grey", r0=0.5, r1=1, lwd = 1.2)
+kpPoints(kp, GOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = GOF.labels$y, r0=0.5, r1=1)
+kpText(kp, labels = names(GOF.labels), cex=1.2, col="black", chr = GOF.labels@seqnames, x = GOF.labels@ranges@start, y = GOF.labels$y+.2, r0=0.5, r1=1)
+## Plot Loss of function
+kp <- kpPlotHorizon(kp, Taylor.loss.gr, r0=0.5, r1=0, ymax=1, ymin = 0, num.parts = 1, col = c("white", "navy"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=0, tick.pos = c(0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=0, cex=1.5, label.margin = 0.1)
+kpAddMainTitle(kp)
+legend(x = 0.85, y = 1, fill = c("orange", "navy"), legend = c("Gain", "Deletion"), box.col = "white", cex = 1.3)
+index <- c()
+for (i in 1:length(Taylor.loss.gr)){
+  index[i] <- Taylor.loss.gr@ranges@NAMES[i] %in% canonical.LOF.alterations
+}
+LOF.labels <- Taylor.loss.gr[index]
+LOF.labels$y <- LOF.labels$value
+kpSegments(kp, LOF.labels, y0=LOF.labels$y+.012, y1=LOF.labels$y+.165, col="grey", r0=0.5, r1=0, lwd = 1.2)
+kpPoints(kp, LOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = LOF.labels$y, r0=0.5, r1=0)
+kpText(kp, labels = names(LOF.labels), cex=1.2, col="black", chr = LOF.labels@seqnames, x = LOF.labels@ranges@start, y = LOF.labels$y+.2, r0=0.5, r1=0)
+kpAddMainTitle(kp, "Taylor", cex=1.5)
+
+###---TCGA----
+kp <- plotKaryotype(genome = "hg38", plot.type=4, cex = 1, labels.plotter = NULL, plot.params = params)
+kpAddChromosomeNames(kp, srt = 90, cex = 1.3, yoffset = 0)
+## Plot Gain of function
+kp <- kpPlotHorizon(kp, TCGA.gain.gr, r0=0.5, r1=1, ymax=1, ymin = 0, num.parts = 1, col=c("white", "orange"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=1, tick.pos = c(0, 0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=1, cex=1.5, label.margin = 0.11)
+index <- c()
+for (i in 1:length(TCGA.gain.gr)){
+  index[i] <- TCGA.gain.gr@ranges@NAMES[i] %in% canonical.GOF.alterations
+}
+GOF.labels <- TCGA.gain.gr[index]
+GOF.labels$y <- GOF.labels$value
+kpSegments(kp, GOF.labels, y0=GOF.labels$y+.012, y1=GOF.labels$y+.165, col="grey", r0=0.5, r1=1, lwd = 1.2)
+kpPoints(kp, GOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = GOF.labels$y, r0=0.5, r1=1)
+kpText(kp, labels = names(GOF.labels), cex=1.2, col="black", chr = GOF.labels@seqnames, x = GOF.labels@ranges@start, y = GOF.labels$y+.2, r0=0.5, r1=1)
+## Plot Loss of function
+kp <- kpPlotHorizon(kp, TCGA.loss.gr, r0=0.5, r1=0, ymax=1, ymin = 0, num.parts = 1, col = c("white", "navy"))
+kpAxis(kp, ymin=0, ymax=1, r0=0.5, r1=0, tick.pos = c(0.25, 0.5, 0.75, 1), cex=1.5)
+kpAddLabels(kp, labels = "CNA Rate", srt=90, pos=1, r0=0.5, r1=0, cex=1.5, label.margin = 0.1)
+kpAddMainTitle(kp)
+legend(x = 0.85, y = 1, fill = c("orange", "navy"), legend = c("Gain", "Deletion"), box.col = "white", cex = 1.3)
+index <- c()
+for (i in 1:length(TCGA.loss.gr)){
+  index[i] <- TCGA.loss.gr@ranges@NAMES[i] %in% canonical.LOF.alterations
+}
+LOF.labels <- TCGA.loss.gr[index]
+LOF.labels$y <- LOF.labels$value
+kpSegments(kp, LOF.labels, y0=LOF.labels$y+.012, y1=LOF.labels$y+.165, col="grey", r0=0.5, r1=0, lwd = 1.2)
+kpPoints(kp, LOF.labels, pch=16, cex=0.5, col="red", lwd=1, y = LOF.labels$y, r0=0.5, r1=0)
+kpText(kp, labels = names(LOF.labels), cex=1.2, col="black", chr = LOF.labels@seqnames, x = LOF.labels@ranges@start, y = LOF.labels$y+.2, r0=0.5, r1=0)
+kpAddMainTitle(kp, "TCGA", cex=1.5)
+dev.off()
+```
